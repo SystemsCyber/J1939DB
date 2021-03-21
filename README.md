@@ -1,5 +1,15 @@
-# J1939DB
-A server system to provide JSON formatted data to decode J1939 messages. This is a framework only and requires a licensed copy of the J1939 standard, which is not included.
+# J1939 Database
+A server system to provide JSON formatted data to decode SAE J1939 messages. This is a framework only and requires a licensed copy of the J1939 standard, which is not included in this public repository.
+
+A normal controller area network (CAN) message comprises an arbitration ID (11 or 29 bits), a data length code, and up to 8 bytes of data. 
+
+```CANID DLC DATA```
+
+A J1939 message interprets the CAN ID into a priority, parameter group number, destination address, and source address. By using the Transport Protocol, J1939 messages can be up to 1748 bytes in length. The message has these fields.
+
+```PRI PGN DA SA DLC DATA```
+
+If these fields are just numbers or raw bytes, it is hard to understand. However, the SAE J1939 standard helps us decode the message. This project will build a web service to provide the translation tools to decode the message. 
 
 ## Needs Analysis
 In many applications that use CAN data from SAE J1939 networks, it is nice to be able to interpret the data according to the standard. To do this, we can use a legitimate copy of the [SAE Digital Annex](https://www.sae.org/standards/content/j1939da_202001/) from the SAE website. However, this version for MS Excel is not useful in lightweight applications or for automatically looking up meaning from CAN messages. Therefore, we need to be able to utilize the Digital Annex in a more useful way.
@@ -14,7 +24,7 @@ The need for this project is to provide a web service that can produce J1939 dec
 
 ## System Requirements
 
-These requirements are specific to the Systems Cyber research group at Colorado State University. However, they may be easily adapted for your purpose. A proper set of requirements will address system function and performance only; however, we have to also include requirements for existing resources. As part of the requirements, we'll also try to include a method for testing or verifying the requirement.
+These requirements are specific to the SystemsCyber research group at Colorado State University. However, they may be easily adapted for your purpose. A proper set of requirements will address system function and performance only; however, we have to also include requirements for existing resources. As part of the requirements, we'll also try to include a method for testing or verifying the requirement.
 
 1. The system should be compatible the JSON file produced by the pretty_j1939 utility from NMFTA. This will be the primary data source for the service.
 
@@ -41,6 +51,7 @@ Verification: Use a JSON linter on outputs to verify the output. Also, be able t
    6. `SLOT`
 
    For example, the request URL may look as follows: 
+
 ```https://cybertruck1.engr.colostate.edu/j1939.html?PGN=65235```
 
 which produces a JSON response including the pertinent information for PGN 65265 (and only PGN 65265).
@@ -109,13 +120,37 @@ Similarly, the
 
 which should produce a result of
 ```
-{ "J1939SATabledb": {
+{ 
+  "J1939SATabledb": {
     "11": "Brakes - System Controller"
   }
 }
 ```
 
+and the request of ```https://cybertruck1.engr.colostate.edu/j1939.html?SPN=84```
+
+would produce a result as follows:
+```
+{ 
+  "J1939SPNdb": {
+    "84": {
+      "DataRange": "0 to 250.996 km/h",
+      "Name": "Wheel-Based Vehicle Speed",
+      "Offset": 0,
+      "OperationalHigh": 250.996,
+      "OperationalLow": 0.0,
+      "OperationalRange": "",
+      "Resolution": 0.00390625,
+      "SPNLength": 16,
+      "Units": "km/h"
+    }
+  }
+}
+```
+
 6. The tool should process a POST request that includes the J1939 frame with the CAN ID represented as a base 10 integer and the data portion of the message represented as base64 encoded bytes. The result should be a JSON of the interpreted CAN message like the pretty_j1939 tool. 
+
+6. The tool should be able to select US or SI units.
 
 7. The tool must be extensible to add proprietary definitions in a similar format to pretty_j1939.
 
