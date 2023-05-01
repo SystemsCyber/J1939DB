@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 *.xlsx
 *.xlsb
+J1939db.json
